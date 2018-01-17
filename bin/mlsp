@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+
+const fs = require('fs'),
+  path = require('path'),
+  https = require('https'),
+  httpProxy = require('http-proxy'),
+  chalk = require('chalk'),
+  argv = require('yargs')
+    .default('host', 'localhost')
+    .default('source', 4443)
+    .default('target', 8080)
+    .default('key', path.resolve(__dirname, '../certs/server.key'))
+    .default('cert', path.resolve(__dirname, '../certs/server.crt'))
+    .default('routing', null)
+    .describe('host', 'The host to listen on')
+    .describe('source', 'The source port')
+    .describe('target', 'The target port')
+    .describe('key', 'Custom SSL key')
+    .describe('cert', 'Custom SSL cert')
+    .describe('routing', 'Custom routing table')
+    .help('h')
+    .alias('h', 'help')
+    .argv,
+  proxy = httpProxy.createProxyServer({
+    xfwd: true,
+    ws: true
+  }),
+  // eslint-disable-next-line import/no-dynamic-require
+  routingTable = argv.routing ? require(path.resolve(process.cwd(), argv.routing)) : {
+    default: {
+      host: argv.host,
+      port: argv.target
+    }
+  };
+
+const server = https.createServer({
+  key: fs.readFileSync(argv.key, 'utf8'),
+  cert: fs.readFileSync(argv.cert, 'utf8')
+}, (req, res) => {
+  const config = routingTable[req.headers.host] || routingTable.default;
+  if (!config) {
+    // eslint-disable-next-line no-console
+    console.error(chalk.red(`Request failed to ${req.headers.host}: ${chalk.bold('No route defined')}`));
+    req.client.destroy();
+    return;
+  }
+  proxy.web(req, res, {
+    target: `${config.protocol || 'http'}://${config.host || argv.host}:${config.port}`
+  });
+});
+
+proxy.on('error', (e, req) => {
+  // eslint-disable-next-line no-console
+  console.error(chalk.red(`Request failed to ${req.headers.host}: ${chalk.bold(e.code)}`));
+  req.client.destroy();
+});
+
+server.listen(argv.source);
+
+// eslint-disable-next-line no-console
+console.log(chalk.green(
+  `Started ${chalk.bold('proxy')}: https://${argv.host}:${argv.source}`,
+  `→ http://${argv.host}:${argv.target}`
+));

@@ -1,0 +1,45 @@
+{
+  "name": "mlsp",
+  "version": "1.0.0",
+  "description": "A simple multi-target local ssl proxy with a routing table.",
+  "main": "./bin/mlsp",
+  "scripts": {
+    "test": "./node_modules/.bin/eslint **/*.js bin/** --ignore-pattern node_modules/"
+  },
+  "bin": {
+    "mlsp": "bin/mlsp"
+  },
+  "bugs": {
+    "url": "https://github.com/jutaz/mlsp/issues"
+  },
+  "homepage": "https://github.com/jutaz/mlsp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jutaz/mlsp.git"
+  },
+  "keywords": [
+    "ssl",
+    "https",
+    "http",
+    "proxy",
+    "socket",
+    "tcp",
+    "development",
+    "local"
+  ],
+  "author": "Justas Brazauskas",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.3.0",
+    "eslint": "^4.15.0",
+    "http-proxy": "^1.16.2",
+    "yargs": "^10.1.1"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0"
+  },
+  "engines": {
+    "node": ">=4"
+  }
+}
